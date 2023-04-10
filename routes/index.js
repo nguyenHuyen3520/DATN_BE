@@ -2,6 +2,11 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 
+
+const Users = require('../controllers/user.controller');
+const Roles = require('../controllers/role.controller');
+
+
 const verifyToken = (req, res, next) => {    
     const authHeader = req.header('Authorization');
 
@@ -18,5 +23,15 @@ const verifyToken = (req, res, next) => {
         return res.sendStatus(403);
     }
 };
+
+router.post("/sendOTP", Users.sendOTP );
+
+router.post("/verify", Users.verifyOTP);
+
+// ROLE
+router.post("/createRole", Roles.create);
+
+// USER
+router.post("/register", Users.register);
 
 module.exports = router;

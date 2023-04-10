@@ -14,8 +14,7 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false,
         },
         sku: {
-            type: DataTypes.STRING,
-            allowNull: false,
+            type: DataTypes.STRING,            
         },
         email: {
             type: DataTypes.STRING,
@@ -32,6 +31,7 @@ module.exports = (sequelize, DataTypes) => {
         image: {
             type: DataTypes.STRING,
             allowNull: false,
+            defaultValue: "https://img.freepik.com/free-icon/user_318-159711.jpg"
         },
         phone: {
             type: DataTypes.STRING,

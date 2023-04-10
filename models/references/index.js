@@ -1,6 +1,6 @@
 module.exports = (db) => {
     const {
-        Roles, Users, Patients
+        Roles, Users, Patients, Notifications, SuppliesGroup, Supplies
     } = db;
 
     // 
@@ -11,5 +11,9 @@ module.exports = (db) => {
     Users.hasMany(Patients); 
     Patients.belongsTo(Users); 
 
-    
+    Users.hasMany(Notifications); 
+    Notifications.belongsTo(Users); 
+
+    SuppliesGroup.hasMany(Supplies); 
+    Supplies.belongsTo(SuppliesGroup); 
 }

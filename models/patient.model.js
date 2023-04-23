@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
         },
         sku: {
             type: DataTypes.STRING,
-            defaultValue: 'HSBN'+ moment().second(),
+            defaultValue: 'HSBN'+ moment().unix(),
         },
         gender: {
             type: DataTypes.INTEGER,
@@ -23,19 +23,31 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false,
         },
         age:{
-            type: DataTypes.INTEGER,
+            type: DataTypes.STRING,
             allowNull: false,
         },
         weight:{
-            type: DataTypes.INTEGER,
+            type: DataTypes.STRING,
             allowNull: false,
         },
         height:{
-            type: DataTypes.INTEGER,
+            type: DataTypes.STRING,
             allowNull: false,
         },
         bmi:{
-            type: DataTypes.FLOAT,
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+        phone:{
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+        email: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+        is_default:{
+            type: DataTypes.INTEGER,
             allowNull: false,
         }
     },

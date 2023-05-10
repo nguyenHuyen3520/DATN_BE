@@ -9,6 +9,12 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: false,
         },
+        additional: {
+            type: DataTypes.STRING,
+        },
+        additional_value: {
+            type: DataTypes.STRING,            
+        },
         status: {
             type: DataTypes.INTEGER,
             allowNull: false,
@@ -16,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
     },
         {
             timestamps: true,
-            underscrored: true,
+            underscored: true,
             createdAt: "created_at",
             updatedAt: "updated_at"
         }

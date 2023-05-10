@@ -31,7 +31,6 @@ exports.createService = async (req, res) => {
     })
 }
 exports.updateService = async (req, res) => {
-    console.log("req.body: ", req.body);
     const service = await Services.findOne(
         {
             where: {

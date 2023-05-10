@@ -27,10 +27,10 @@ exports.getService = async (req, res) => {
 exports.createSuppliesGroup = async (req, res) => {
     await SuppliesGroup.create({
         name: req.body.name,
-        status: 1,        
+        status: 1,
     });
     return res.status(200).json({
-        success: true,        
+        success: true,
     })
 }
 exports.updateService = async (req, res) => {
@@ -40,17 +40,52 @@ exports.updateService = async (req, res) => {
             where: {
                 id: req.body.id
             }
-        }, 
-        
+        },
+
     );
     service.update({
         service_name: req.body.name,
         description: req.body.description,
         price: req.body.price,
-        });
-    
+    });
+
     return res.status(200).json({
-        success: true,        
+        success: true,
     })
 }
 
+exports.createSupplies = async (req, res) => {
+    await Supplies.create({
+        name: req.body.name,
+        description: req.body.description,
+        quantity: req.body.quantity,
+        price: req.body.price,
+        status: req.body.status ? req.body.status : 1,
+        unit: req.body.unit,
+        supplies_group_id: req.body.supplies_group_id ? req.body.supplies_group_id : 1,
+    });
+    return res.status(200).json({
+        success: true,
+        message: 'Tạo vật tư mới thành công!'
+    })
+}
+
+exports.getSupplies = async (req, res) => {
+    const supplies = await Supplies.findOne({
+        where: { id: req.query.id }
+    });
+    return res.status(200).json({
+        success: true,
+        data: supplies
+    })
+}
+
+exports.getSuppliesByGroup = async (req, res)=>{
+    const supplies = await Supplies.findAll({
+        where: { supplies_group_id: req.query.id }
+    });
+    return res.status(200).json({
+        success: true,
+        data: supplies
+    })
+}

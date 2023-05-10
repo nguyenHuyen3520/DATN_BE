@@ -13,6 +13,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: false,
         },
+        unit: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
         quantity: {
             type: DataTypes.INTEGER,
             allowNull: false,
@@ -28,7 +32,7 @@ module.exports = (sequelize, DataTypes) => {
     },
         {
             timestamps: true,
-            underscrored: true,
+            underscored: true,
             createdAt: "created_at",
             updatedAt: "updated_at"
         }

@@ -6,21 +6,30 @@ module.exports = (sequelize, DataTypes) => {
             primaryKey: true,
         },        
         date:{
-            type: DataTypes.DATE,      
+            type: DataTypes.STRING,      
             allowNull: false,      
         },
         time:{
             type: DataTypes.STRING,      
             allowNull: false,
         },
+        sort:{
+            type: DataTypes.INTEGER,                     
+        },
         status:{
             type: DataTypes.INTEGER,      
             allowNull: false,    
-        }                
+        },
+        symptom:{
+            type: DataTypes.STRING,                  
+        },
+        treatment:{
+            type: DataTypes.STRING,                  
+        },
     },
         {
             timestamps: true,
-            underscrored: true,
+            underscored: true,
             createdAt: "created_at",
             updatedAt: "updated_at"
         }

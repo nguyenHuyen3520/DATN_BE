@@ -10,24 +10,75 @@ const Bills = db.Bills;
 const Bookings = db.Bookings;
 const Services = db.Services;
 
-const Nexmo = require('nexmo');
+const { Vonage } = require('@vonage/server-sdk')
 
-const nexmo = new Nexmo({
+const vonage = new Vonage({
     apiKey: "4d523163",
-    apiSecret: "nTUUU5A6oaw0IlKH",
-});
+    apiSecret: "nTUUU5A6oaw0IlKH"
+})
 
-const textflow = require("textflow.js");
-textflow.useKey("5xGGL2IMFB5cTYMMDtbhbzTZ2wWGQ9jshUDcpqJ5PKxhc99NSThdbXOS7e2386Ow");
+const accountSid = "ACd179f314f460cbce2bff1cfd16299b4b";
+const authToken = "d94b02c1416bc6a94d3e1d147b13bc4a";
+const client = require('twilio')(accountSid, authToken);
+const myPhone = "+12525019305";
 
-exports.loginAccessToken = async (req, res) => {
-    console.log("req.decode.phone: ", req.decode.phone);
-    const user = await Users.findOne({
-        where: { phone: req.decode.phone },
+
+exports.sendOTP = async (req, res) => {
+    // console.log("req.body: ", req.body);
+    const { phone } = req.body;
+
+    const findUser = await Users.findOne({
+        where: {
+            phone: phone
+        }
+    });
+    if (findUser && findUser.first_name) {
+        return res.status(200).json({
+            success: false,
+            message: "Số điện thoại này đã được đăng ký",
+            data: findUser
+        });
+    }
+    // client.messages
+    //     .create({
+    //         body: 'This is the ship that made the Kessel Run in fourteen parsecs?',
+    //         from: myPhone,
+    //         to: '+840898731845'
+    //     })
+    //     .then(message => console.log(message));
+    let to = '';
+    if (phone && phone.slice(0, 1) == '0') {
+        to = '84' + phone.slice(1);
+    } else {
+        to = '84' + phone;
+    }
+    const from = "Phòng khám nhi"
+
+    vonage.verify.start({
+        number: to,
+        brand: from
+    })
+        .then(resp => {
+            return res.status(200).json({
+                success: true,
+                request_id: resp.request_id
+            })
+        })
+        .catch(err => {
+            return res.status(200).json({
+                success: false,
+                message: 'Số điện thoại bị sai định dạng. Vui lòng nhập lại.'
+            })
+        });
+}
+
+exports.getInfo = async (req, res) => {
+    const info = await Users.findOne({
+        where: { id: req.decode.id },
         include: [
             {
                 model: Patients,
-                include:[
+                include: [
                     {
                         model: Bookings,
                         include: [
@@ -54,43 +105,23 @@ exports.loginAccessToken = async (req, res) => {
         where: {
             RoleId: 2
         }
-    });    
+    });
     const services = await Services.findAll();
     return res.status(200).json({
-        info: user,
+        info,
         doctors,
         services,
         success: true,
     });
 }
 
-exports.register = async (req, res) => {
-    const hashedPassword = await bcrypt.hash(req.body.password, 12);
-    await Users.create({
-        first_name: req.body.first_name,
-        last_name: req.body.last_name,
-        email: req.body.email,
-        password: hashedPassword,
-        address: req.body.address,
-        description: req.body.description ?  req.body.description : 'a',
-        phone: req.body.phone,
-        status: 1,
-        RoleId: req.body.role_id ? req.body.role_id : 3,
-        sku: req.body.sku
-    });
-    return res.status(200).json({
-        success: true,
-    });
-}
-
-exports.login = async (req, res) => {
-    console.log("in login")
-    Users.findOne({
-        where: { phone: req.query.phone },
+exports.loginAccessToken = async (req, res) => {
+    const user = await Users.findOne({
+        where: { phone: req.decode.phone },
         include: [
             {
                 model: Patients,
-                include:[
+                include: [
                     {
                         model: Bookings,
                         include: [
@@ -112,18 +143,50 @@ exports.login = async (req, res) => {
             },
 
         ]
+    });
+    const doctors = await Users.findAll({
+        where: {
+            RoleId: 2
+        }
+    });
+    const services = await Services.findAll();
+    return res.status(200).json({
+        info: user,
+        doctors,
+        services,
+        success: true,
+    });
+}
+
+exports.register = async (req, res) => {
+    const hashedPassword = await bcrypt.hash(req.body.password, 12);
+    await Users.create({
+        first_name: req.body.first_name,
+        last_name: req.body.last_name,
+        email: req.body.email,
+        password: hashedPassword,
+        address: req.body.address,
+        description: req.body.description ? req.body.description : 'a',
+        phone: req.body.phone,
+        status: 1,
+        RoleId: req.body.role_id ? req.body.role_id : 3,
+        sku: req.body.sku
+    });
+    return res.status(200).json({
+        success: true,
+    });
+}
+
+exports.login = async (req, res) => {
+    console.log("in login")
+    Users.findOne({
+        where: { phone: req.query.phone },
     }).then(user => {
         bcrypt.compare(req.query.password, user.password).then(async (result) => {
             if (result) {
-                const doctors = await Users.findAll({
-                    where: {
-                        RoleId: 2
-                    }
-                });                
-                const services = await Services.findAll();
                 const payload = {
-                    services: services,
-                    doctors: doctors,
+                    // services: services,
+                    // doctors: doctors,
                     ...user.dataValues,
                     tineLife: (new Date().getTime() / 1000).toFixed() + 18000  // timeLift 5h
                 };
@@ -150,20 +213,26 @@ exports.login = async (req, res) => {
 exports.adminLogin = async (req, res) => {
     console.log("in login", req.body)
     Users.findOne({
-        where: { email: req.body.account },        
+        where: { email: req.body.account },
     }).then(user => {
         bcrypt.compare(req.body.password, user.password).then(async (result) => {
             if (result) {
                 const payload = {
-                    ...user.dataValues                   
+                    ...user.dataValues
                 };
                 const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {
                     expiresIn: "20d",
                 });
+                const doctors = await Users.findAll({
+                    where: {
+                        role_id: 2
+                    }
+                })
                 return res.status(200).json({
                     accessToken: accessToken,
                     info: payload,
                     success: true,
+                    doctors
                 });
             } else {
                 console.log("Wrong password. Please try again!")
@@ -176,68 +245,91 @@ exports.adminLogin = async (req, res) => {
     })
 }
 
-exports.sendOTP = (req, res) => {
-    console.log("req.body: ", req.body);
-    const { phone } = req.body;
-    const findUser = Users.findOne({
-        where: {
-            phone: phone
-        }
-    });
-
-    if (findUser && findUser.first_name) {
-        return res.status(400).json({
-            success: false,
-            message: "Số điện thoại này đã được đăng ký",
-            data: findUser
-        });
-    }
-    nexmo.verify.request({
-        number: phone,
-        // You can customize this to show the name of your company
-        brand: 'Vonage Demo App',
-        // We could put `'6'` instead of `'4'` if we wanted a longer verification code
-        code_length: '4'
-    }, (err, result) => {
-        if (err) {
-            // If there was an error, return it to the client
-            res.status(500).send(err.error_text);
-            return;
-        }
-        // Otherwise, send back the request id. This data is integral to the next step
-        const requestId = result.request_id;
-        if (result.ok) {
-            return res.status(200).json({
-                success: true,
-                requestId: requestId
-            });
-        }
-    });
-}
 
 exports.verifyOTP = (req, res) => {
-    const { phone, code } = req.body;
-    var result = textflow.verifyCode(phone, code);
-    if (result.valid) {
-        return res.status(400).json({
-            success: false,
+    const { request_id, code } = req.body;
+    vonage.verify.check(request_id, code)
+        .then(resp => {
+            console.log(resp);
+            return res.status(200).json({
+                success: true,
+            })
+        })
+        .catch(err => {
+            return res.status(200).json({
+                success: false,
+                message: "Mã code nhập bị sai. Vui lòng nhập lại."
+            })
         });
-    }
-    if (result.ok) {
-        return res.status(200).json({
-            success: true,
-        });
-    }
 }
 
-exports.getUsers = async(req, res)=>{
+exports.getUsers = async (req, res) => {
     const uses = await Users.findAll({
-        where:{
+        where: {
             role_id: 2
         }
     });
     return res.status(200).json({
         success: true,
         data: uses
+    })
+}
+
+exports.getUserDetail = async (req, res) => {
+    const uses = await Users.findOne({
+        where: {
+            id: req.query.id
+        }
+    });
+    return res.status(200).json({
+        success: true,
+        data: uses
+    })
+}
+
+exports.updateUser = async (req, res) => {
+    const uses = await Users.update(
+        {
+            ...req.body
+        }
+        , {
+            where: {
+                id: req.body.id
+            }
+        });
+    return res.status(200).json({
+        success: true,
+    })
+}
+
+exports.createUser = async (req, res) => {
+    console.log("req.body: ", req.body)
+    const findUserEmail = await Users.findOne({
+        where: {
+            email: req.body.email
+        }
+    });
+    const findUserPhone = await Users.findOne({
+        where: {
+            phone: req.body.phone
+        }
+    });
+    if (findUserEmail) {
+        return res.status(200).json({
+            success: false,
+            message: 'Email đã có người đăng ký!!'
+        })
+    }
+    if (findUserPhone) {
+        return res.status(200).json({
+            success: false,
+            message: 'Số điện thoại đã có người đăng ký!!'
+        })
+    }
+    const hashedPassword = await bcrypt.hash(req.body.password, 12);
+    const user = await Users.create({ ...req.body, status: 1, RoleId: 2, password: hashedPassword });
+    return res.status(200).json({
+        success: true,
+        user
     })
 }

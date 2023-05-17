@@ -8,7 +8,7 @@ const Booking_Supplies = db.Booking_Supplies;
 const Supplies = db.Supplies;
 const Bills = db.Bills;
 const fs = require('fs');
-
+const { Op } = require('sequelize');
 const Excel = require('exceljs');
 const path = require('path');
 const nodemailer = require('nodemailer');
@@ -256,14 +256,14 @@ exports.getMySchedule = async (req, res) => {
     })
 }
 
-exports.sendBill = async (req, res) => {    
+exports.sendBill = async (req, res) => {
     var mail = nodemailer.createTransport({
         service: 'gmail',
         auth: {
-          user: "nguyenhuyennd1211@gmail.com",  
-          pass: "ocipmrrkhfvcxkeu"
+            user: "nguyenhuyennd1211@gmail.com",
+            pass: "ocipmrrkhfvcxkeu"
         }
-      });
+    });
     const booking = await Bookings.findOne(
         {
             where: {
@@ -359,29 +359,91 @@ exports.sendBill = async (req, res) => {
         } else {
             console.log("to: ", booking?.dataValues?.Patient?.email);
             console.log('Email sent: ' + info.response);
-            console.log("info: ",info);
+            console.log("info: ", info);
         }
     });
 
     return res.status(200).json({
-        success: true,        
+        success: true,
     })
 }
 
-exports.getDashboard = async(req, res) => {
+exports.getDashboard = async (req, res) => {
     const users = await Users.findAll({
-        where:{
+        where: {
             role_id: 2
         }
     });
     const bills = await Bills.findAll();
     const bookings = await Bookings.findAll();
     return res.status(200).json({
-        success: true,        
-        data:{
+        success: true,
+        data: {
             users,
             bills,
             bookings
         }
     })
+}
+
+exports.getTotals = async (req, res) => {
+    const doctors = await Users.findAll({
+        where: {
+            role_id: 2
+        }
+    });
+    return res.status(200).json({
+        success: true,
+        doctors
+    })
+}
+
+exports.totalFilter = async (req, res) => {
+    const query = req.query;
+    console.log("query: ", query)
+    if (query?.total == '1') {
+        const bills = await Bills.findAll({
+            where: {
+                status: 2
+            }
+        });
+        return res.status(200).json({
+            success: true,
+            data: bills
+        })
+    }
+    if (query?.doctor) {
+        const bills = await Bookings.findAll({
+            where: {
+                user_id: query.doctor,
+                status: 4
+            },
+            include: [
+                {
+                    model: Bills,
+                }
+            ]
+        });
+        console.log("bills: ", bills);
+        return res.status(200).json({
+            success: true,
+            data: bills
+        })
+    }
+    if (query?.time) {
+        const startDate = moment().subtract(parseInt(query?.time), 'months').toDate();
+        const endDate = new Date();
+        const bills = await Bills.findAll({
+            where: {
+                status: 2,
+                created_at: {
+                    [Op.between]: [startDate, endDate]
+                }
+            }
+        });
+        return res.status(200).json({
+            success: true,
+            data: bills
+        })
+    }
 }

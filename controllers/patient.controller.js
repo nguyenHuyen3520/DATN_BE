@@ -25,7 +25,7 @@ exports.create = async (req, res) => {
             UserId: req.decode.id,
         }
     });
-    return res.status(201).json({
+    return res.status(200).json({
         success: true,
         patients: patients,
     })
@@ -46,7 +46,7 @@ exports.update = async (req, res) => {
             UserId: req.decode.id,
         }
     });
-    return res.status(201).json({
+    return res.status(200).json({
         success: true,
         patients: patientArray,
     })
@@ -80,12 +80,12 @@ exports.changePatientDetail = async (req, res) => {
             UserId: req.decode.id,
         }
     });
-    const patientDetail = await Patients.findAll({
+    const patientDetail = await Patients.findOne({
         where:{
             id: req.body.id
         }
     });
-    return res.status(201).json({
+    return res.status(200).json({
         success: true,
         patients: patientArray,
         patientDetail

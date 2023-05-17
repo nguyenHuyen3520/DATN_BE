@@ -13,14 +13,11 @@ const Schedules = require('../controllers/schedule.controller');
 
 const verifyToken = (req, res, next) => {
     const authHeader = req.header('Authorization');
-
+    console.log("req.body: ", req.body)
     const token = authHeader;
-
     if (!token) return res.sendStatus(401);
-    try {
-        console.log("19")
-        const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-        console.log("decoded: ", decoded);
+    try {        
+        const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);        
         if (decoded.timeLife < (new Date().getTime()/1000).toFixed()) {
             // kiem tra timeLife 
             return res.status(401).json({
@@ -38,8 +35,7 @@ const verifyToken = (req, res, next) => {
 };
 
 router.post("/sendOTP", Users.sendOTP);
-
-router.post("/verify", Users.verifyOTP);
+router.post("/validateOTP", Users.verifyOTP);
 
 // ROLE
 router.post("/createRole", Roles.create);
@@ -48,10 +44,14 @@ router.post("/createRole", Roles.create);
 router.post("/register", Users.register);
 router.get("/login", Users.login);
 router.get("/loginAccessToken", verifyToken, Users.loginAccessToken);
+router.get("/getInfo",verifyToken, Users.getInfo);
 
 // ADMIN
 router.post("/admin/login", Users.adminLogin);
 router.get("/getUsers", Users.getUsers);
+router.get("/admin/getUserDetail", Users.getUserDetail);
+router.post("/admin/updateUser", Users.updateUser);
+router.post("/admin/createUser", Users.createUser);
 
 
 // Schedule
@@ -64,6 +64,9 @@ router.post("/saveTreatment", Schedules.saveTreatment);
 router.post("/success", Schedules.success);
 router.post("/sendBill", Schedules.sendBill);
 router.get('/getDashboard', Schedules.getDashboard )
+router.get('/getTotals', Schedules.getTotals )
+router.get('/totalFilter', Schedules.totalFilter)
+
 
 // SERVICES
 router.get("/getServices", Services.getServices);

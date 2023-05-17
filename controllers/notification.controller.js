@@ -13,7 +13,7 @@ exports.readAll = async (req, res) => {
             UserId: req.decode.id,
         }
     });
-    return res.status(201).json({
+    return res.status(200).json({
         success: true,
         notifications: notifications,
     })

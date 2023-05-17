@@ -27,6 +27,7 @@
     "sequelize": "^6.30.0",
     "sequelize-cli": "^6.6.0",
     "textflow.js": "^0.1.4",
+    "twilio": "^4.11.0",
     "yarn": "^1.22.19"
   }
 }

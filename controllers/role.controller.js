@@ -6,7 +6,7 @@ exports.create = async (req, res) => {
         display_name: req.body.display_name,
     };
     const role = await Roles.create(data);
-    return res.status(201).json({
+    return res.status(200).json({
         success: true,
         data: role,
     })

@@ -416,3 +416,48 @@ exports.getPosts = async (req, res) => {
         data
     })
 }
+
+exports.getPost = async (req, res) => {
+    const data = await Posts.findOne({
+        where: {
+            id: req.query.post_id
+        }
+    });
+    return res.status(200).json({
+        success: true,
+        data
+    })
+}
+
+exports.updatePost = async (req, res) => {
+    console.log("req.body.formData: ", req.body.formData)
+    await Posts.update({
+        ...req.body.formData
+    },
+        {
+            where: {
+                id: req.body.id
+            }
+        }
+    );
+    return res.status(200).json({
+        success: true,
+    })
+}
+
+exports.deletePost = async (req, res) => {
+    await Posts.destroy({ where: { id: req.body.post_id } });
+    return res.status(200).json({
+        success: true,
+    })
+}
+
+exports.getHomeData = async (req, res) => {
+    const posts = await Posts.findAll();
+    return res.status(200).json({
+        success: true,
+        data: {
+            posts
+        }
+    })
+}

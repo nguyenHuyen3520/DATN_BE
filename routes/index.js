@@ -34,6 +34,9 @@ const verifyToken = (req, res, next) => {
     }
 };
 
+// HOME
+router.get("/homeData", Users.getHomeData);
+
 router.post("/sendOTP", Users.sendOTP);
 router.post("/validateOTP", Users.verifyOTP);
 
@@ -52,10 +55,16 @@ router.post("/changePassword", verifyToken, Users.changePassword);
 router.post("/admin/login", Users.adminLogin);
 router.get("/getUsers", Users.getUsers);
 router.get("/admin/getUserDetail", Users.getUserDetail);
+router.get("/getPosts", Users.getPosts);
+router.get("/getPost", Users.getPost);
+
 router.post("/admin/updateUser", Users.updateUser);
 router.post("/admin/createUser", Users.createUser);
 router.post("/admin/createPost", Users.createPost);
-router.get("/getPosts", Users.getPosts);
+router.put("/admin/updatePost", Users.updatePost);
+router.post("/admin/deletePost", Users.deletePost);
+
+
 
 
 // Schedule

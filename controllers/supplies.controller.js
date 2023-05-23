@@ -3,11 +3,48 @@ const Services = db.Services;
 const SuppliesGroup = db.SuppliesGroup;
 const Supplies = db.Supplies;
 
+// exports.createSupplies = async (req, res) => {
+//     await Supplies.create(req.body);
+//     return res.status(200).json({
+//         success: true,
+//     });
+// }
+
+exports.deleteSupplies = async (req, res) => {
+    const supplies = await Supplies.findOne(
+        {
+            where: {
+                id: req.body.id
+            }
+        },
+
+    );
+    supplies.update({
+        status: 0
+    });
+    return res.status(200).json({
+        success: true
+    })
+}
+
 exports.getSuppliesGroup = async (req, res) => {
     const suppliesGroup = await SuppliesGroup.findAll();
     return res.status(200).json({
         success: true,
         data: suppliesGroup,
+    })
+}
+
+exports.getSuppliesAll = async (req, res) => {
+    const { supplies_id } = req.query;
+    const supplies = await Supplies.findAll({
+        where: {
+            supplies_group_id: supplies_id
+        }
+    })
+    return res.status(200).json({
+        success: true,
+        data: supplies,
     })
 }
 
@@ -55,6 +92,7 @@ exports.updateService = async (req, res) => {
 }
 
 exports.createSupplies = async (req, res) => {
+    console.log("req.body", req.body)
     await Supplies.create({
         name: req.body.name,
         description: req.body.description,
@@ -80,7 +118,7 @@ exports.getSupplies = async (req, res) => {
     })
 }
 
-exports.getSuppliesByGroup = async (req, res)=>{
+exports.getSuppliesByGroup = async (req, res) => {
     const supplies = await Supplies.findAll({
         where: { supplies_group_id: req.query.id }
     });

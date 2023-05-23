@@ -1,27 +1,21 @@
 module.exports = (sequelize, DataTypes) => {
-    const Appointments = sequelize.define("Appointments", {
+    const Posts = sequelize.define("Posts", {
         id: {
             type: DataTypes.UUID,
             defaultValue: DataTypes.UUIDV4,
             primaryKey: true,
         },
-        date: {
-            type: DataTypes.DATE,
-            allowNull: false,
-        },
-        time: {
-            type: DataTypes.TIME,
-            allowNull: false,
-        },
-        diagnose: {
-            type: DataTypes.STRING,            
-        }, 
-        name: {
+        image: {
             type: DataTypes.STRING,
             allowNull: false,
-        }, 
-        treatment:{
-            type: DataTypes.STRING,            
+        },
+        content: {
+            type: DataTypes.TEXT('long'),
+            allowNull: false,
+        },
+        title: {
+            type: DataTypes.STRING,
+            allowNull: false,
         }
     },
         {
@@ -32,5 +26,5 @@ module.exports = (sequelize, DataTypes) => {
         }
     );
 
-    return Appointments;
+    return Posts;
 };

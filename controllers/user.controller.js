@@ -9,12 +9,13 @@ const Notifications = db.Notifications;
 const Bills = db.Bills;
 const Bookings = db.Bookings;
 const Services = db.Services;
+const Posts = db.Posts;
 
 const { Vonage } = require('@vonage/server-sdk')
 
 const vonage = new Vonage({
-    apiKey: "4d523163",
-    apiSecret: "nTUUU5A6oaw0IlKH"
+    apiKey: "2cafee80",
+    apiSecret: "4DL7x1YQ71mOdhEu"
 })
 
 const accountSid = "ACd179f314f460cbce2bff1cfd16299b4b";
@@ -59,6 +60,19 @@ exports.sendOTP = async (req, res) => {
         brand: from
     })
         .then(resp => {
+            console.log("resp: ", resp);
+            if (resp.status == '3') {
+                return res.status(200).json({
+                    success: false,
+                    message: 'Số điện thoại bị sai định dạng. Vui lòng nhập lại.'
+                })
+            }
+            if (resp?.errorText || resp?.error_text) {
+                return res.status(200).json({
+                    success: false,
+                    message: resp?.errorText ? resp?.errorText : resp?.error_text ? resp?.error_text : 'Vui lòng nhập lại'
+                })
+            }
             return res.status(200).json({
                 success: true,
                 request_id: resp.request_id
@@ -170,7 +184,7 @@ exports.register = async (req, res) => {
         phone: req.body.phone,
         status: 1,
         RoleId: req.body.role_id ? req.body.role_id : 3,
-        sku: req.body.sku
+        sku: req.body.sku ? req.body.sku : ''
     });
     return res.status(200).json({
         success: true,
@@ -178,7 +192,6 @@ exports.register = async (req, res) => {
 }
 
 exports.login = async (req, res) => {
-    console.log("in login")
     Users.findOne({
         where: { phone: req.query.phone },
     }).then(user => {
@@ -248,6 +261,7 @@ exports.adminLogin = async (req, res) => {
 
 exports.verifyOTP = (req, res) => {
     const { request_id, code } = req.body;
+    console.log("req.body: ", req.body)
     vonage.verify.check(request_id, code)
         .then(resp => {
             console.log(resp);
@@ -331,5 +345,74 @@ exports.createUser = async (req, res) => {
     return res.status(200).json({
         success: true,
         user
+    })
+}
+
+exports.update = async (req, res) => {
+    console.log("req.body update: ", req.body)
+    await Users.update(
+        {
+            ...req.body.info
+        }
+        , {
+            where: {
+                phone: req.body.info.phone
+            }
+        });
+    const user = await Users.findOne({
+        where: {
+            phone: req.body.info.phone
+        }
+    });
+    return res.status(200).json({
+        success: true,
+        info: user
+    })
+}
+
+exports.changePassword = async (req, res) => {
+    Users.findOne({
+        where: { phone: req.body.phone },
+    }).then(user => {
+        bcrypt.compare(req.body.oldPassword, user.password).then(async (result) => {
+            console.log("result: ", result);
+            if (result) {
+                const hashedPassword = await bcrypt.hash(req.body.newPassword, 12);
+                await Users.update(
+                    {
+                        password: hashedPassword
+                    }
+                    , {
+                        where: {
+                            phone: req.body.phone
+                        }
+                    });
+                return res.status(200).json({
+                    success: true,
+                    message: "Đổi mật khẩu thành công"
+                })
+            } else {
+                return res.status(200).json({
+                    success: false,
+                    message: "Mật khẩu cũ không đúng. Vui lòng nhập lại."
+                })
+            }
+        });
+    })
+}
+
+exports.createPost = async (req, res) => {
+    await Posts.create(req.body);
+    res.header("Access-Control-Allow-Origin", "*");
+    return res.status(200).json({
+        success: true
+    })
+}
+
+exports.getPosts = async (req, res) => {
+    const data = await Posts.findAll();
+    return res.status(200).json({
+        success: true,
+        data
     })
 }

@@ -1,6 +1,6 @@
 module.exports = (db) => {
     const {
-        Roles, Users, Patients, Notifications, SuppliesGroup, Supplies, Appointments, Prescriptions, Bills, Bookings, Services,Booking_Supplies
+        Roles, Users, Patients, Notifications, SuppliesGroup, Supplies, Prescriptions, Bills, Bookings, Services, Booking_Supplies
     } = db;
 
     // quyen - nguoi dung
@@ -19,21 +19,9 @@ module.exports = (db) => {
     SuppliesGroup.hasMany(Supplies);
     Supplies.belongsTo(SuppliesGroup);
 
-    // HO SO - Lich hen
-    Patients.hasMany(Appointments);
-    Appointments.belongsTo(Patients);
-
-    // lich hen - don thuoc 
-    Appointments.hasMany(Prescriptions);
-    Prescriptions.belongsTo(Appointments);
-
     // nguoi dung - hoa don
     Users.hasMany(Bills);
     Bills.belongsTo(Users);
-
-    // hoa don - lich hen
-    Bills.hasOne(Appointments);
-    Appointments.belongsTo(Bills);
 
     // HO SO - Lich hen
     Patients.hasMany(Bookings);

@@ -1,26 +1,17 @@
 module.exports = (sequelize, DataTypes) => {
-    const AllCodes = sequelize.define("AllCodes", {
+    const Banners = sequelize.define("Banners", {
         id: {
             type: DataTypes.INTEGER,
             autoIncrement: true,
             primaryKey: true,
         },
-        key: {
+        image: {
             type: DataTypes.STRING,
             allowNull: false,
         },
-        type: {
+        url: {
             type: DataTypes.STRING,
-            allowNull: false,            
-        },
-        valueVi: {
-            type: DataTypes.STRING,
-            allowNull: false,            
-        },
-        valueEn: {
-            type: DataTypes.STRING,
-            allowNull: false,            
-        },
+        }
     },
         {
             timestamps: true,
@@ -30,5 +21,5 @@ module.exports = (sequelize, DataTypes) => {
         }
     );
 
-    return AllCodes;
+    return Banners;
 };

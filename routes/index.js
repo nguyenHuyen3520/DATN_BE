@@ -16,9 +16,9 @@ const verifyToken = (req, res, next) => {
     console.log("req.body: ", req.body)
     const token = authHeader;
     if (!token) return res.sendStatus(401);
-    try {        
-        const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);        
-        if (decoded.timeLife < (new Date().getTime()/1000).toFixed()) {
+    try {
+        const decoded = jwt.verify(token, "myscret");
+        if (decoded.timeLife < (new Date().getTime() / 1000).toFixed()) {
             // kiem tra timeLife 
             return res.status(401).json({
                 success: false,
@@ -44,7 +44,9 @@ router.post("/createRole", Roles.create);
 router.post("/register", Users.register);
 router.get("/login", Users.login);
 router.get("/loginAccessToken", verifyToken, Users.loginAccessToken);
-router.get("/getInfo",verifyToken, Users.getInfo);
+router.get("/getInfo", verifyToken, Users.getInfo);
+router.post("/updateUser", verifyToken, Users.update);
+router.post("/changePassword", verifyToken, Users.changePassword);
 
 // ADMIN
 router.post("/admin/login", Users.adminLogin);
@@ -52,6 +54,8 @@ router.get("/getUsers", Users.getUsers);
 router.get("/admin/getUserDetail", Users.getUserDetail);
 router.post("/admin/updateUser", Users.updateUser);
 router.post("/admin/createUser", Users.createUser);
+router.post("/admin/createPost", Users.createPost);
+router.get("/getPosts", Users.getPosts);
 
 
 // Schedule
@@ -63,9 +67,10 @@ router.post("/saveSupplies", Schedules.saveSupplies);
 router.post("/saveTreatment", Schedules.saveTreatment);
 router.post("/success", Schedules.success);
 router.post("/sendBill", Schedules.sendBill);
-router.get('/getDashboard', Schedules.getDashboard )
-router.get('/getTotals', Schedules.getTotals )
+router.get('/getDashboard', Schedules.getDashboard)
+router.get('/getTotals', Schedules.getTotals)
 router.get('/totalFilter', Schedules.totalFilter)
+router.get('/getTreatment', Schedules.getTreatment)
 
 
 // SERVICES
@@ -73,10 +78,14 @@ router.get("/getServices", Services.getServices);
 router.get("/getService", Services.getService);
 router.post("/createService", Services.createService);
 router.put("/updateService", Services.updateService);
+router.post("/deleteService", Services.deleteService);
 
 // Supplies
 router.get("/getSuppliesGroup", Supplies.getSuppliesGroup);
 router.post("/createSuppliesGroup", Supplies.createSuppliesGroup);
+router.get("/getSuppliesAll", Supplies.getSuppliesAll);
+router.post("/deleteSupplies", Supplies.deleteSupplies);
+// router.post("/createSupplies", Supplies.createSupplies);
 
 
 

@@ -6,10 +6,35 @@ const Notifications = db.Notifications;
 const Bills = db.Bills;
 const Users = db.Users;
 const Services = db.Services;
+const axios = require('axios');
+
+const sendNotification = async (externalUserId, message) => {
+    try {
+        const response = await axios.post(
+            'https://onesignal.com/api/v1/notifications',
+            {
+                app_id: '5f576173-d203-4d68-88c2-ece066b602c0',
+                include_external_user_ids: [externalUserId],
+                contents: { en: message },
+            },
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Basic ZjVkNzFlY2UtOWU4YS00YjQ3LTlhNjgtNWQ0OWM2YzQwYjg2`,
+                    'accept': 'application/json'
+                },
+            }
+        );
+        console.log("response: ", response.data);
+    } catch (error) {
+        console.error('Failed to send push notification:', error);
+        // res.status(500).json({ error: 'Failed to send push notification' });
+    }
+}
 
 exports.create = async (req, res) => {
     const patientArray = await Patients.findAll({
-        where:{
+        where: {
             UserId: req.decode.id,
         }
     });
@@ -21,7 +46,7 @@ exports.create = async (req, res) => {
     }
     const patient = await Patients.create(data);
     const patients = await Patients.findAll({
-        where:{
+        where: {
             UserId: req.decode.id,
         }
     });
@@ -42,7 +67,7 @@ exports.update = async (req, res) => {
         },
     );
     const patientArray = await Patients.findAll({
-        where:{
+        where: {
             UserId: req.decode.id,
         }
     });
@@ -58,30 +83,30 @@ exports.changePatientDetail = async (req, res) => {
             is_default: 0
         },
         {
-        where:{
-            UserId: req.decode.id,
-            is_default: 1
+            where: {
+                UserId: req.decode.id,
+                is_default: 1
+            }
         }
-    }
-    );    
+    );
     await Patients.update(
         {
             is_default: 1
         },
         {
-        where:{
-            UserId: req.decode.id,
-            id: req.body.id
+            where: {
+                UserId: req.decode.id,
+                id: req.body.id
+            }
         }
-    }
     );
     const patientArray = await Patients.findAll({
-        where:{
+        where: {
             UserId: req.decode.id,
         }
     });
     const patientDetail = await Patients.findOne({
-        where:{
+        where: {
             id: req.body.id
         }
     });
@@ -92,14 +117,14 @@ exports.changePatientDetail = async (req, res) => {
     })
 }
 
-exports.createCalendar = async (req, res) =>{
+exports.createCalendar = async (req, res) => {
     const check = await Bookings.findAll({
         where: {
             UserId: req.body.doctorId,
             date: req.body.date
         }
     });
-    if(check.length === 0){
+    if (check.length === 0) {
         const array = [
             {
                 date: req.body.date,
@@ -158,14 +183,14 @@ exports.createCalendar = async (req, res) =>{
             UserId: req.body.doctorId,
             date: req.body.date
         }
-    });  
+    });
     return res.status(200).json({
         success: true,
         bookings: bookings,
     })
 }
 
-exports.createBooking = async (req, res) =>{
+exports.createBooking = async (req, res) => {
     await Bookings.update(
         {
             status: 1,
@@ -174,18 +199,19 @@ exports.createBooking = async (req, res) =>{
             ServiceId: req.body.serviceId
         },
         {
-        where: {
-            id: req.body.bookingId
-        }
-    });
-    await Notifications.create({
-        content: `Bạn đã đặt lịch khám bệnh thành công lịch khám bệnh vào ngày ${ moment.unix(req.body.date).format("DD/MM/YYYY")} vào khung giờ ${req.body.time}. Vui lòng để ý điện thoại để xác nhận từ phòng khám.`,
-        additional: "a",
-        additional_value: req.body.bookingId,
-        UserId: req.decode.id,
-        status: 1,
-        ServiceId: req.body.serviceId
-    });
+            where: {
+                id: req.body.bookingId
+            }
+        });
+    sendNotification(req.decode.id, `Bạn đã đặt lịch khám bệnh thành công lịch khám bệnh vào ngày ${moment.unix(req.body.date).format("DD/MM/YYYY")} vào khung giờ ${req.body.time}. Vui lòng để ý điện thoại để xác nhận từ phòng khám.`)
+    // await Notifications.create({
+    //     content: `Bạn đã đặt lịch khám bệnh thành công lịch khám bệnh vào ngày ${ moment.unix(req.body.date).format("DD/MM/YYYY")} vào khung giờ ${req.body.time}. Vui lòng để ý điện thoại để xác nhận từ phòng khám.`,
+    //     additional: "a",
+    //     additional_value: req.body.bookingId,
+    //     UserId: req.decode.id,
+    //     status: 1,
+    //     ServiceId: req.body.serviceId
+    // });
     const notifications = await Notifications.findAll({
         where: {
             UserId: req.decode.id,
@@ -193,18 +219,18 @@ exports.createBooking = async (req, res) =>{
     });
     const bookings = await Bookings.findAll(
         {
-        where: {
-            UserId: req.decode.id,
-        },
-        include: [
-            {
-                model: Users,
+            where: {
+                UserId: req.decode.id,
             },
-            {
-                model: Services,
-            },
-        ]
-    });
+            include: [
+                {
+                    model: Users,
+                },
+                {
+                    model: Services,
+                },
+            ]
+        });
     return res.status(200).json({
         success: true,
         notifications,

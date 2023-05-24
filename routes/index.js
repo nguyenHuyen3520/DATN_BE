@@ -34,6 +34,8 @@ const verifyToken = (req, res, next) => {
     }
 };
 
+
+
 // HOME
 router.get("/homeData", Users.getHomeData);
 

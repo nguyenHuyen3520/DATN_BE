@@ -203,7 +203,7 @@ exports.createBooking = async (req, res) => {
                 id: req.body.bookingId
             }
         });
-    sendNotification(req.decode.id, `Bạn đã đặt lịch khám bệnh thành công lịch khám bệnh vào ngày ${moment.unix(req.body.date).format("DD/MM/YYYY")} vào khung giờ ${req.body.time}. Vui lòng để ý điện thoại để xác nhận từ phòng khám.`)
+    sendNotification(req.decode.id, `Bạn đã đặt lịch khám bệnh thành công lịch khám bệnh vào ngày ${moment.unix(req.body.date).format("DD/MM/YYYY")} với khung giờ ${req.body.time}. Vui lòng để ý điện thoại để xác nhận từ phòng khám.`)
     // await Notifications.create({
     //     content: `Bạn đã đặt lịch khám bệnh thành công lịch khám bệnh vào ngày ${ moment.unix(req.body.date).format("DD/MM/YYYY")} vào khung giờ ${req.body.time}. Vui lòng để ý điện thoại để xác nhận từ phòng khám.`,
     //     additional: "a",
@@ -216,6 +216,34 @@ exports.createBooking = async (req, res) => {
         where: {
             UserId: req.decode.id,
         }
+    });
+    const info = await Users.findOne({
+        where: { id: req.decode.id },
+        include: [
+            {
+                model: Patients,
+                include: [
+                    {
+                        model: Bookings,
+                        include: [
+                            {
+                                model: Users,
+                            },
+                            {
+                                model: Services,
+                            },
+                        ]
+                    },
+                ]
+            },
+            {
+                model: Notifications,
+            },
+            {
+                model: Bills,
+            },
+
+        ]
     });
     const bookings = await Bookings.findAll(
         {
@@ -234,6 +262,7 @@ exports.createBooking = async (req, res) => {
     return res.status(200).json({
         success: true,
         notifications,
-        bookings
+        bookings,
+        info
     })
 }

@@ -11,7 +11,7 @@ const Supplies = db.Supplies;
 // }
 
 exports.deleteSupplies = async (req, res) => {
-    const supplies = await Supplies.findOne(
+    await Supplies.destroy(
         {
             where: {
                 id: req.body.id
@@ -19,9 +19,6 @@ exports.deleteSupplies = async (req, res) => {
         },
 
     );
-    supplies.update({
-        status: 0
-    });
     return res.status(200).json({
         success: true
     })
@@ -100,7 +97,7 @@ exports.createSupplies = async (req, res) => {
         price: req.body.price,
         status: req.body.status ? req.body.status : 1,
         unit: req.body.unit,
-        supplies_group_id: req.body.supplies_group_id ? req.body.supplies_group_id : 1,
+        SuppliesGroupId: req.body.supplies_group_id ? req.body.supplies_group_id : 1,
     });
     return res.status(200).json({
         success: true,

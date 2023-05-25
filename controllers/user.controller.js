@@ -265,6 +265,12 @@ exports.verifyOTP = (req, res) => {
     vonage.verify.check(request_id, code)
         .then(resp => {
             console.log(resp);
+            if (res.error_text) {
+                return res.status(200).json({
+                    success: false,
+                    message: res.error_text
+                })
+            }
             return res.status(200).json({
                 success: true,
             })
@@ -459,5 +465,33 @@ exports.getHomeData = async (req, res) => {
         data: {
             posts
         }
+    })
+}
+
+exports.getBookings = async (req, res) => {
+    const info = await Users.findOne({
+        where: { id: req.decode.id },
+        include: [
+            {
+                model: Patients,
+                include: [
+                    {
+                        model: Bookings,
+                        include: [
+                            {
+                                model: Users,
+                            },
+                            {
+                                model: Services,
+                            },
+                        ]
+                    },
+                ]
+            },
+        ]
+    });
+    return res.status(200).json({
+        success: true,
+        info
     })
 }

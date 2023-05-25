@@ -48,6 +48,7 @@ exports.createService = async (req, res) => {
         service_name: req.body.name,
         description: req.body.description,
         price: req.body.price,
+        status: 1
     });
     return res.status(200).json({
         success: true,

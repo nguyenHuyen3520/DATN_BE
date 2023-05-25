@@ -50,6 +50,8 @@ router.post("/register", Users.register);
 router.get("/login", Users.login);
 router.get("/loginAccessToken", verifyToken, Users.loginAccessToken);
 router.get("/getInfo", verifyToken, Users.getInfo);
+router.get("/getBookings", verifyToken, Users.getBookings);
+
 router.post("/updateUser", verifyToken, Users.update);
 router.post("/changePassword", verifyToken, Users.changePassword);
 
@@ -82,6 +84,7 @@ router.get('/getDashboard', Schedules.getDashboard)
 router.get('/getTotals', Schedules.getTotals)
 router.get('/totalFilter', Schedules.totalFilter)
 router.get('/getTreatment', Schedules.getTreatment)
+router.get('/scheduleSearch', Schedules.scheduleSearch)
 
 
 // SERVICES

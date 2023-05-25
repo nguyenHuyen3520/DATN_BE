@@ -1,4 +1,3 @@
-const moment = require('moment');
 const db = require('../models');
 const Bookings = db.Bookings;
 const Users = db.Users;
@@ -12,7 +11,32 @@ const { Op } = require('sequelize');
 const Excel = require('exceljs');
 const path = require('path');
 const nodemailer = require('nodemailer');
+const moment = require('moment');
+const axios = require('axios');
 
+const sendNotification = async (externalUserId, message) => {
+    try {
+        const response = await axios.post(
+            'https://onesignal.com/api/v1/notifications',
+            {
+                app_id: '5f576173-d203-4d68-88c2-ece066b602c0',
+                include_external_user_ids: [externalUserId],
+                contents: { en: message },
+            },
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Basic ZjVkNzFlY2UtOWU4YS00YjQ3LTlhNjgtNWQ0OWM2YzQwYjg2`,
+                    'accept': 'application/json'
+                },
+            }
+        );
+        console.log("response: ", response.data);
+    } catch (error) {
+        console.error('Failed to send push notification:', error);
+        // res.status(500).json({ error: 'Failed to send push notification' });
+    }
+}
 // var mail = nodemailer.createTransport({
 //     service: 'gmail',
 //     auth: {
@@ -37,6 +61,9 @@ exports.getSchedule = async (req, res) => {
             },
             {
                 model: Patients
+            },
+            {
+                model: Supplies
             }
         ]
     });
@@ -47,7 +74,7 @@ exports.getSchedule = async (req, res) => {
 }
 
 exports.confirmSchedule = async (req, res) => {
-    
+
     await Bookings.update(
         {
             status: req.body.status + 1
@@ -58,6 +85,18 @@ exports.confirmSchedule = async (req, res) => {
             }
         }
     )
+
+    if (req.body?.Patient?.UserId && req.body.status == 1) {
+        console.log("vao trong sendNoti");
+        let message = `Lịch khám bệnh ngày ${moment.unix(req.body.date).format("DD/MM/YYYY")} với khung giờ ${req.body.time} của bạn đã được xác nhận thành công. Vui lòng đến đúng giờ để được phục vụ tốt nhất.`
+        sendNotification(req.body?.Patient?.UserId, message)
+    }
+
+    if (req.body?.Patient?.UserId && req.body.status == 3) {
+        let message = `Cảm ơn quý khách đã sử dụng dịch vụ của phòng khám. Hóa đơn của quý khách đã được gửi về email. Vui lòng kiểm tra lại thông tin hóa đơn. Mọi thắc mắc có thể liên hệ với phòng khám để được giải quyết.`
+        sendNotification(req.body?.Patient?.UserId, message)
+    }
+
     const data = await Bookings.findAll({
         where: {
             status: [1, 2, 3, 4, 5]
@@ -71,10 +110,14 @@ exports.confirmSchedule = async (req, res) => {
             },
             {
                 model: Patients
+            },
+            {
+                model: Supplies
             }
         ]
     });
-    if(req.body.status == 3){
+
+    if (req.body.status == 3) {
         var mail = nodemailer.createTransport({
             service: 'gmail',
             auth: {
@@ -105,7 +148,7 @@ exports.confirmSchedule = async (req, res) => {
         }, 0);
         const workbook = new Excel.Workbook();
         const worksheet = workbook.addWorksheet('Hóa đơn thanh toán #' + req.body.id);
-    
+
         const dataWorksheet = [
             {
                 STT: 1,
@@ -124,7 +167,7 @@ exports.confirmSchedule = async (req, res) => {
                 }
             }),
             {
-    
+
             },
             {
                 price: "Tổng hóa đơn",
@@ -141,14 +184,14 @@ exports.confirmSchedule = async (req, res) => {
         dataWorksheet.forEach((item) => {
             worksheet.addRow(item);
         });
-    
+
         worksheet.columns.forEach((sheetColumn) => {
             sheetColumn.font = {
                 size: 12,
             };
             sheetColumn.width = 30;
         });
-    
+
         worksheet.getRow(1).font = {
             bold: true,
             size: 13,
@@ -170,7 +213,7 @@ exports.confirmSchedule = async (req, res) => {
                 }
             ],
         };
-    
+
         mail.sendMail(mailOptions, function (error, info) {
             if (error) {
                 console.log(error);
@@ -559,7 +602,7 @@ exports.getTreatment = async (req, res) => {
     console.log("req.query", req.query);
     const data = await Bookings.findOne({
         order: [['updated_at', 'DESC']],
-        where:{
+        where: {
             patient_id: req.query.patient_id,
             status: 4
         },
@@ -570,6 +613,36 @@ exports.getTreatment = async (req, res) => {
             {
                 model: Services,
             },
+        ]
+    });
+    return res.status(200).json({
+        success: true,
+        data
+    })
+}
+
+
+exports.scheduleSearch = async (req, res) => {
+    const data = await Bookings.findAll({
+        where: {
+            status: [1, 2, 3, 4, 5]
+        },
+        include: [
+            {
+                model: Users,
+            },
+            {
+                model: Services,
+            },
+            {
+                model: Patients,
+                where: {
+
+                }
+            },
+            {
+                model: Supplies
+            }
         ]
     });
     return res.status(200).json({
